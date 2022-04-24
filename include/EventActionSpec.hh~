@@ -1,0 +1,32 @@
+/*
+  EventActionSpec.hh
+
+  2017/8  Yang
+*/
+
+#ifndef EventActionSpec_h 
+#define EventActionSpec_h 1
+
+#include "EventAction.hh"
+
+class EventActionSpec : public EventAction
+{
+public:
+  EventActionSpec( Analysis *analysisManager=0, 
+		   G4bool fAlwaysDraw=false );
+  ~EventActionSpec();
+  
+public:
+  void BeginOfEventAction( const G4Event *anEvent );
+  void EndOfEventAction( const G4Event *anEvent );
+  
+private:
+  G4int TargetcolID;
+  G4int TpccolID;
+  G4int TofcolID;
+  G4int VDcolID;
+};
+
+#endif
+
+  

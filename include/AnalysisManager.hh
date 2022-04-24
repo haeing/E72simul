@@ -18,6 +18,11 @@ const int num_evtgen = 100;
 const int num_tpchit = 300;
 const int num_tofhit = 100;
 const int num_targethit = 100;
+const int num_ftofhit = 100;
+const int num_ch1hit = 100;
+const int num_fachit = 100;
+const int num_bdchit = 100;
+const int num_dchit = 200;
 
 
 class AnalysisManager
@@ -53,6 +58,8 @@ public:
   void SetBeam(int j, G4ThreeVector D, G4ThreeVector P);
   void Terminate( void ) const;
   void SaveFile ( void ) const;
+
+  void SetCosTheta( double cosx );
 
 private:
   G4bool fActive_;
@@ -121,6 +128,37 @@ private:
   int tofparentpid2[num_tofhit];
   int tofparentpid3[num_tofhit];
 
+  //FAC                                                                                    
+  int nhFac;
+  int facseg[num_fachit];
+  double facedep[num_fachit];
+  double factime[num_fachit];
+  double facposx[num_fachit];
+  double facposy[num_fachit];
+  double facposz[num_fachit];
+  double facmomx[num_fachit];
+  double facmomy[num_fachit];
+  double facmomz[num_fachit];
+  int factrid[num_fachit];
+  double facpath[num_fachit];
+  int facpid[num_fachit];
+
+  //BDC                                                                                    
+  int nhBdc;
+  int bdcseg[num_bdchit];
+  double bdcedep[num_bdchit];
+  double bdctime[num_bdchit];
+  double bdcposx[num_bdchit];
+  double bdcposy[num_bdchit];
+  double bdcposz[num_bdchit];
+  double bdcmomx[num_bdchit];
+  double bdcmomy[num_bdchit];
+  double bdcmomz[num_bdchit];
+  int bdctrid[num_bdchit];
+  double bdcpath[num_bdchit];
+  int bdcpid[num_bdchit];
+
+
   //Target
   int nhTarget;
   int targetseg[num_targethit];
@@ -134,9 +172,28 @@ private:
   double targetmomz[num_targethit];
   int targettrid[num_targethit];
   double targetpath[num_targethit];
+  double targethitdiff[num_targethit];
   int targetpid[num_targethit];
 
+  //Elastic
+  double elcosth;
 
+  //KURAMA part
+  //DC
+  int nhDc;
+  int dclayer[num_dchit];
+  int dcid[num_dchit];
+  double dcedep[num_dchit];
+  double dctime[num_dchit];
+  double dcposx[num_dchit];
+  double dcposy[num_dchit];
+  double dcposz[num_dchit];
+  double dcmomx[num_dchit];
+  double dcmomy[num_dchit];
+  double dcmomz[num_dchit];
+  int dctrid[num_dchit];
+  double dcpath[num_dchit];
+  int dcpid[num_dchit];
 };
 
 #endif

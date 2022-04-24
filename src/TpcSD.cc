@@ -57,7 +57,8 @@ G4bool TpcSD::ProcessHits( G4Step *aStep,
   G4int hitLayer=0;
   G4int hitPad = vol->GetCopyNo();
   
-  //G4cout << "TpcSD: " << hitName <<  " " << hitPad << G4endl;
+
+  //G4cout << "[TpcSD] TpcSD: " << hitName <<  " " << hitPad << G4endl;
   
   G4int nHits = TpcCollection->entries();
   G4ThreeVector hitpos = aStep->GetPreStepPoint()->GetPosition();

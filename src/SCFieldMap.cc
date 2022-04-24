@@ -1,6 +1,6 @@
 /*
   SCFieldMap.cc
-  2007/4  K.Shirotori
+  2018/8  Yang
 */
 
 #include "SCFieldMap.hh"
@@ -53,8 +53,11 @@ bool SCFieldMap::Initialize( void )
   int  nDiv[3];
   float posMin[3];
   float deltaPos[3];
+  float posMax[3];
+
   trPar->SetBranchAddress("ndiv",nDiv);
   trPar->SetBranchAddress("posMin",posMin);
+  trPar->SetBranchAddress("posMax",posMax);
   trPar->GetEntry(0);
   Nx = (int)nDiv[0];
   Ny = (int)nDiv[1];
@@ -65,13 +68,12 @@ bool SCFieldMap::Initialize( void )
   Y0 = posMin[1];
   Z0 = posMin[2];
 
-
   
-  dX = -1.0*(double)((int)X0*2 / (Nx-1));
-  dY = -1.0*(double)((int)Y0*2 / (Ny-1));
-  dZ = -1.0*(double)((int)Z0*2 / (Nz-1));
+  dX = -1.0*(double)((int)(X0-posMax[0]) / (Nx-1));
+  dY = -1.0*(double)((int)(Y0-posMax[1]) / (Ny-1));
+  dZ = -1.0*(double)((int)(Z0-posMax[2]) / (Nz-1));
 
-  //std::cout<<"x0: "<<X0<<" "<<dX<<" Ny: "<<Y0<<" Nz: "<<Z0<<std::endl;
+  //std::cout<<"x0: "<<X0<<" "<<dX<<" Ny: "<<Ny<<" Nz: "<<Nz<<std::endl;
 
   B.resize(Nx);
   for( int ix=0; ix<Nx; ++ix )
@@ -124,6 +126,7 @@ bool SCFieldMap::Initialize( void )
 		{
 		  //std::cout << " (-_-)p[Wait]q "<<ievent<<" ixx: "<<ixx;
 		  std::cout << " (-_-)p[Wait]q ";
+		  //std::cout << " Reading ";
 		  fflush( stdout );
 		}
 
@@ -149,6 +152,20 @@ bool SCFieldMap::GetFieldValue( const double point[3], double *Bfield ) const
   iz1=int( (zt-Z0)/dZ );
 
   double wx1, wx2, wy1, wy2, wz1, wz2;
+  
+  if( ix1<0 ) { ix1=ix2=0; wx1=0.; wx2=0.; }
+  else if( ix1>=Nx-1 ) { ix1=ix2=Nx-1; wx1=0.; wx2=0.; }
+  else { ix2=ix1+1; wx1=(X0+dX*ix2-xt)/dX; wx2=1.-wx1; }
+
+  if( iy1<0 ) { iy1=iy2=0; wy1=0.; wy2=0.; }
+  else if( iy1>=Ny-1 ) { iy1=iy2=Ny-1; wy1=0.; wy2=0.; }
+  else { iy2=iy1+1; wy1=(Y0+dY*iy2-yt)/dY; wy2=1.-wy1; }
+
+  if( iz1<0 ) { iz1=iz2=0; wz1=0.; wz2=0.; }
+  else if( iz1>=Nz-1 ) { iz1=iz2=Nz-1; wz1=0.; wz2=0.; }
+  else { iz2=iz1+1; wz1=(Z0+dZ*iz2-zt)/dZ; wz2=1.-wz1; }
+  
+  /*
   if( ix1<0 ) { ix1=ix2=0; wx1=1.; wx2=0.; }
   else if( ix1>=Nx-1 ) { ix1=ix2=Nx-1; wx1=1.; wx2=0.; }
   else { ix2=ix1+1; wx1=(X0+dX*ix2-xt)/dX; wx2=1.-wx1; }
@@ -160,6 +177,8 @@ bool SCFieldMap::GetFieldValue( const double point[3], double *Bfield ) const
   if( iz1<0 ) { iz1=iz2=0; wz1=1.; wz2=0.; }
   else if( iz1>=Nz-1 ) { iz1=iz2=Nz-1; wz1=1.; wz2=0.; }
   else { iz2=iz1+1; wz1=(Z0+dZ*iz2-zt)/dZ; wz2=1.-wz1; }
+  */
+
 
   double bx1=wx1*wy1*B[ix1][iy1][iz1].x+wx1*wy2*B[ix1][iy2][iz1].x
     +wx2*wy1*B[ix2][iy1][iz1].x+wx2*wy2*B[ix2][iy2][iz1].x;

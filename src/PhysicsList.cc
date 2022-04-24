@@ -243,12 +243,16 @@ void PhysicsList::ConstructHeavyIon()
 void PhysicsList::ConstructProcess()
 {
   ConfMan *confMan = ConfMan::GetConfManager();
-  //int flag = confMan->PhysFlag();
+  int flag = confMan->PhysFlag();
 
   AddTransportationSks();
   ConstructEM();
+  if( GetFPhysProcDCY(flag) )
+    {
+      ConstructDecay();
+    }
+  //ConstructDecay();
   //ConstructHadronic();
-  ConstructDecay();
 
   //if( GetFPhysProcEM(flag) ){
   //  ConstructEM();
@@ -404,6 +408,11 @@ void PhysicsList::ConstructEM()
 #include "G4ElasticHadrNucleusHE.hh"
 #include "G4HadronElastic.hh"
 
+//10.07.p03 version
+#include "G4ChipsKaonZeroInelasticXS.hh"
+#include "G4ChipsKaonPlusInelasticXS.hh"
+#include "G4ChipsKaonMinusInelasticXS.hh"
+
 //#include "G4LElastic.hh"
 
 //Pion
@@ -419,6 +428,7 @@ void PhysicsList::ConstructEM()
 //Nucleon
 //#include "G4LEProtonInelastic.hh"
 //#include "G4LENeutronInelastic.hh"
+
 
 //Inelastic
 #include "G4HadronInelasticProcess.hh"

@@ -109,14 +109,25 @@ MaterialList::MaterialList()
   SUS316L->AddElement( elSi,  0.69 *perCent );
   SUS316L->AddElement( elMn,  0.49 *perCent );
 
-  Aerogel = new G4Material( "Aerogel", 0.2000*g/cm3, 2 );
-  Aerogel->AddElement( elSi, 1 );
-  Aerogel->AddElement( elO,  2 );
+
+  G4Material* SiO2= new G4Material("Quartz", 2.20*g/cm3, 2);
+  SiO2-> AddElement(elSi, 1);
+  SiO2-> AddElement(elO,  2);
+
+  G4Material* H2O = new G4Material("Water", 1.000*g/cm3, 2);
+  H2O->AddElement(elH, 2);
+  H2O->AddElement(elO, 1);
+
+
+  Aerogel = new G4Material( "Aerogel", 0.2000*g/cm3, 3 );
+  Aerogel->AddMaterial( SiO2, 62.5*perCent );
+  Aerogel->AddMaterial( H2O, 37.4*perCent );
+  Aerogel->AddElement ( elC, 0.1*perCent);
 
   // PolyStylene
   Scin = new G4Material( "Scintillator", 1.032*g/cm3, 2 );
-  Scin->AddElement( elC, 2 );
-  Scin->AddElement( elH, 6 );
+  Scin->AddElement( elC, 8 );
+  Scin->AddElement( elH, 8 );
 
   // Polyethylene
   Polyethylene= new G4Material( "Polyethylene", 0.93*g/cm3, 2 );

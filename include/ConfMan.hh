@@ -59,9 +59,16 @@ public:
   GeomMan *GetGeomManager( void ) { return GeomManager_; }
 
   // Field                                                                                                 
-  bool ExistField( void ) const { return fField_; }
-  const std::string & FieldMapName( void ) const { return FieldMapName_; }
-  double GetFieldScale( void ) const { return FieldScale_; }
+  bool ExistField1( void ) const { return fField1_; }
+  const std::string & FieldMapName1( void ) const { return FieldMapName1_; }
+  double GetFieldScale1( void ) const { return FieldScale1_; }
+
+  bool ExistField2( void ) const { return fField2_; }
+  const std::string & FieldMapName2( void ) const { return FieldMapName2_; }
+  double GetFieldScale2( void ) const { return FieldScale2_; }
+
+  // Read Beam Profile File //
+  const std::string & GetBeamProfileFile( void ) const { return BeamFileName_; }
 
   // Stepping Action                                                                                  
   int StepFlag( void ) const { return fStepping; }
@@ -72,6 +79,8 @@ public:
   bool DoesEStop( void ) const { return GetFStopE(fStepping); }
 
   // Physics Process                                                                            
+  int PhysFlag( void ) const { return fPhysProc; }
+  bool ExistDCYProc( void ) const { return GetFPhysProcDCY(fPhysProc); }
   /*
   int PhysFlag( void ) const { return fPhysProc; }
   bool ExistEMProc( void ) const { return GetFPhysProcEM(fPhysProc); }
@@ -102,9 +111,14 @@ private:
   std::string ConfFileName_;
 
   // Field                                                                                                 
-  bool fField_;
-  std::string FieldMapName_;
-  double FieldScale_;
+  bool fField1_;
+  std::string FieldMapName1_;
+  double FieldScale1_;
+
+  bool fField2_;
+  std::string FieldMapName2_;
+  double FieldScale2_;
+
 
   // Geometry
   std::string GeomFileName_;
@@ -118,6 +132,9 @@ private:
   std::string EvtGenDecayName_;
   std::string EvtGenPDLName_;
 
+  // Physics Process //
+  int fPhysProc;
+
   // Reaction mode //
   int ReactionMode_;
   
@@ -128,6 +145,9 @@ private:
   double bvx_;
   double bvy_;
   double bvz_;
+
+  // Read Beam Profile File //
+  std::string BeamFileName_;  
 
 private:
   bool InitializeParameterFiles( void );

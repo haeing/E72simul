@@ -27,7 +27,8 @@
 #include "EvtGenBase/EvtRandom.hh"
 #include "EvtGenBase/EvtReport.hh"
 #include "EvtGenBase/EvtHepMCEvent.hh"
-#include "EvtGenBase/EvtStdlibRandomEngine.hh"
+//#include "EvtGenBase/EvtStdlibRandomEngine.hh"
+#include "EvtGenBase/EvtSimpleRandomEngine.hh"
 #include "EvtGenBase/EvtAbsRadCorr.hh"
 #include "EvtGenBase/EvtDecayBase.hh"
 #include "EvtGenExternal/EvtExternalGenList.hh"
@@ -53,8 +54,14 @@ int main(int argc, char** argv)
       //confFile = "conf/accept/p760_t0.6_electron.conf";
       //confFile = "conf/trigger/p730_zm650_f1.0.conf";
       //confFile = "conf/trigger/p730_zm1000_f0.6.conf";
-      confFile = "conf/p730_t1.conf";
-      //confFile = "conf/beam.conf";
+      //confFile = "conf/p730_t1.conf";
+      //confFile = "conf/e45_pac/p1600_f1.0_elastic.conf";
+      //confFile = "conf/e45_pac/beamth/beam_pim_p762_f1.0.conf";
+      //confFile = "conf/e45_pac/beamth/beam_pip_p794_f1.0.conf";
+      //confFile = "conf/e45_pac/elastic/elastic_pip_p1600_f1.2.conf";
+      //confFile = "conf/e45_pac/physics/physics_pippi0p_p1600_f1.2.conf";
+      //confFile = "conf/e45_pac/physics/physics_pippipn_p1600_f1.2.conf";
+      confFile = "conf/test.conf";
     }
   ConfMan *confManager = new ConfMan( confFile );
   confManager->Initialize();
@@ -72,7 +79,8 @@ int main(int argc, char** argv)
 
   //EvtGen//
   G4cout<< "************" <<G4endl;
-  EvtStdlibRandomEngine eng;
+  //EvtStdlibRandomEngine eng;
+  EvtSimpleRandomEngine eng;
   EvtRandom::setRandomEngine((EvtRandomEngine*)&eng);
 
   EvtAbsRadCorr* radCorrEngine = 0;

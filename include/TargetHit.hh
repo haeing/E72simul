@@ -35,6 +35,7 @@ private:
   G4double time_;
   G4double edep_;
   G4double path_;
+  G4double hitdiff_;
   G4ThreeVector pos_;
   G4ThreeVector mom_;
   G4ThreeVector lmom_;
@@ -60,6 +61,8 @@ public:
   void SetHitParticleID( G4int id ) 
   { HitPartID_ = id; }
   void SetPathLength ( G4double path ) { path_ = path;}
+  void SetHitDiff ( G4double hitdiff ) { hitdiff_ = hitdiff;}
+  void AddHitDiff ( G4double hitdiff ) { hitdiff_ += hitdiff;}
 
   G4int GetPass() const { return pass_; }
   G4int GetLayerID( void ) const { return layerID_; }
@@ -67,6 +70,7 @@ public:
   G4double GetTime( void ) const { return time_; }
   G4double GetEdep() const { return edep_; }
   G4double GetPathLength( void ) const { return path_; }
+  G4double GetHitDiff( void ) const { return hitdiff_; }
   G4ThreeVector GetPos( void ) const { return pos_; }
   G4ThreeVector GetMom( void ) const { return mom_; }
   G4ThreeVector GetLMom( void ) const { return lmom_; }

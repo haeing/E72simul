@@ -17,6 +17,7 @@
 #include "G4ParticleTypes.hh"
 #include "G4VTouchable.hh"
 #include "G4TouchableHistory.hh"
+#include "G4Material.hh"
 
 #include "ConfMan.hh"
 
@@ -47,12 +48,29 @@ void SteppingAction::UserSteppingAction(const G4Step* theStep )
   G4ThreeVector posl = Touchable->GetHistory()->GetTopTransform().TransformPoint( pos );
 
   G4String particle = theTrack->GetDefinition()->GetParticleName();
-  /* 
-  G4cout<<"[SteppingAction] particle: "<<particle <<G4endl;
-  G4cout<<"[SteppingAction] physVol: "<<physVol->GetName()<<G4endl;
-  G4cout<<"[SteppingAction] pos: "<<pos<<G4endl;
-  G4cout<<"[SteppingAction] Track ID: "<<theTrack->GetTrackID()<<G4endl;
+
+  G4Material * material =  preStepPoint -> GetMaterial();
+
+
+  /*  
+  if( theTrack->GetTrackID() == 1)
+    {
+      G4cout<<"[SteppingAction] particle: "<<particle <<G4endl;
+      G4cout<<"[SteppingAction] physVol: "<<physVol->GetName()<<G4endl;
+      G4cout<<"[SteppingAction] pos: "<<pos<<G4endl;
+      G4cout<<"[SteppingAction] Track ID: "<<theTrack->GetTrackID()<<G4endl;
+    }
   */
+
+
+  //Fe and Cu material kill
+  if( material->GetName() == "G4_Cu" || material->GetName() == "G4_Fe" )
+    {
+      theTrack->SetTrackStatus( fStopAndKill );
+      //G4cout<<"Material Cu or Fe hit killed"<<G4endl;
+      return;
+    }
+
   // All hits with SC are killed.                                                              
   if( GetFStopSC(StepFlag) && detector->IsVolumeStopper(physVol) )
     {
@@ -60,6 +78,15 @@ void SteppingAction::UserSteppingAction(const G4Step* theStep )
       //G4cout<<"SC hit killed"<<G4endl;
       return;
     }
+
+  // All hits with KURAMA are killed.                                                              
+  if( detector->IsVolumeStopper_KURAMA(physVol) )
+    {
+      theTrack->SetTrackStatus( fStopAndKill );
+      //G4cout<<"KURAMA hit killed"<<G4endl;
+      return;
+    }
+
   
   // All neutrino are killed.                                                                         
   if( GetFStopNu(StepFlag) &&( particle =="anti_nu_e" || particle =="anti_nu_mu"

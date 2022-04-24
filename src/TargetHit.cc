@@ -15,7 +15,7 @@
 
 TargetHit::TargetHit()
   : layerID_(0), segID_(0), time_(-100.0), edep_(0.0),
-    trackNo_(0), fSignal_(false)
+    trackNo_(0), fSignal_(false), hitdiff_(0.)
 {}
 
 G4Allocator<TargetHit> TargetHitAllocator;

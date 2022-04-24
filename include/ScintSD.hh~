@@ -1,0 +1,33 @@
+// ====================================================================
+//   E07ScintSD.hh
+//
+// ====================================================================
+#ifndef E07_SCINT_SD_H
+#define E07_SCINT_SD_H
+
+#include "G4VSensitiveDetector.hh"
+#include "E07ScintHit.hh"
+
+class G4HCofThisEvent;
+class G4Step;
+class G4TouchableHistory;
+
+class E07ScintSD : public G4VSensitiveDetector {
+  private:
+    G4THitsCollection<E07ScintHit>* hitsCollection;
+
+  public:
+    E07ScintSD(const G4String& name);
+    virtual ~E07ScintSD();
+
+    // virtual methods
+    virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist);
+    virtual void Initialize(G4HCofThisEvent* HCTE);
+    virtual void EndOfEvent(G4HCofThisEvent* HCTE);
+
+    virtual void DrawAll();
+    virtual void PrintAll();
+
+};
+
+#endif

@@ -19,6 +19,8 @@
 #include "G4RandomDirection.hh"
 #include "G4SystemOfUnits.hh"
 
+#include "TFile.h"
+#include "TTree.h"
 
 #include "Randomize.hh"
 
@@ -30,7 +32,8 @@
 #include "EvtGenBase/EvtRandom.hh"
 #include "EvtGenBase/EvtReport.hh"
 #include "EvtGenBase/EvtHepMCEvent.hh"
-#include "EvtGenBase/EvtStdlibRandomEngine.hh"
+//#include "EvtGenBase/EvtStdlibRandomEngine.hh"
+#include "EvtGenBase/EvtSimpleRandomEngine.hh"
 #include "EvtGenBase/EvtAbsRadCorr.hh"
 #include "EvtGenBase/EvtDecayBase.hh"
 #include "EvtGenExternal/EvtExternalGenList.hh"
@@ -72,8 +75,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction( DetectorConstruction *det,
 {
 
   G4int n_particle = 1;
+  bp_nAccess = 0; 
   particleGun = new G4ParticleGun(n_particle);
   particleTable = G4ParticleTable::GetParticleTable();
+
 }
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
@@ -91,7 +96,7 @@ void PrimaryGeneratorAction::GeneratePrimaries( G4Event *anEvent )
     {
       G4cout<<"Event# "<<event_num<<G4endl;
     }
-  
+
   ConfMan *confMan = ConfMan::GetConfManager();
   int reactionMode = confMan->ReactionMode();
 
@@ -104,13 +109,27 @@ void PrimaryGeneratorAction::GeneratePrimaries( G4Event *anEvent )
   bvz_ = confMan->GetBeamVZ();
   G4ThreeVector D(bvx_, bvy_, bvz_);
   G4ThreeVector P(bpx_, bpy_, bpz_);
-  anaMan_->SetBeam(1, D, P);
+  //anaMan_->SetBeam(1, D, P);
 
   //G4cout<<"Reaction Mode: "<< reactionMode << G4endl;
   switch(reactionMode)
     {
     case 1: GenerateTest(anEvent, D, P); break;
     case 2: GenerateTest2(anEvent, evtgen_, D, P); break;
+    case 3: GenerateElasticPiM(anEvent, D, P); break;
+    case 4: GenerateElasticPiP(anEvent, D, P); break;
+    case 5: GenerateBeamPiM(anEvent, D, P); break;
+    case 6: GenerateBeamPiP(anEvent, D, P); break;
+    case 7: GeneratePiPSchannel(anEvent, evtgen_, D, P); break;
+    case 8: GenerateBeamKaonM(anEvent, D, P); break;
+    case 9: GenerateBeamKaonMBeamRoot(anEvent); break; //read beam profiel from Root file
+    case 10: GenerateHDiBaryonBeamRoot_test(anEvent); break; //read beam profiel from Root file
+    case 11: GenerateHDiBaryon_test(anEvent, evtgen_, D, P); break; //K-pp -> HK+ reaction
+    case 12: GenerateScatteredKPlus(anEvent, D, P); break; //Random K+ generation
+      //case 13: GenerateXi_test(anEvent, evtgen_, D, P); break; //K-p -> Xi-K+ reaction
+    case 14: GenerateBeamKaonMBr(anEvent, D, P); break; // K- beam beam file
+    case 15: GenerateLambdaStarBr(anEvent, evtgen_, D, P); break; //K-p -> Lambda(1663) beam file
+    case 16: GenerateLambdaStarBrCS(anEvent, evtgen_, D, P); break; //K-p -> Lambda(1663) beam file cross-section
     }
 }
 
@@ -128,81 +147,6 @@ G4ParticleGun * PrimaryGeneratorAction::chooseGun( const G4String & name  )
 {
 }
 
-void PrimaryGeneratorAction::GenerateTest(G4Event* anEvent, G4ThreeVector D, G4ThreeVector P)
-{
-  double mass_km = 0.493677;
-  //particleGun -> SetParticleDefinition (particleTable -> FindParticle("kaonT1"));
-  particleGun -> SetParticleDefinition (particleTable -> FindParticle("kaon-"));
-  //std::cout<<"Beam energy GenerateTest 2" << std::endl;
-  //G4ThreeVector dir = G4RandomDirection();
-  G4ThreeVector beamx ( D.x(), D.y(), D.z());
-  G4ThreeVector beamp ( P.x(), P.y(), P.z());
-  G4ThreeVector beampu =  beamp/beamp.mag();
-  G4double energy = (sqrt(mass_km*mass_km+beamp.mag2()) - mass_km )*GeV;
-  //std::cout<<"Beam energy: "<< energy /GeV << std::endl;
-
-  particleGun->SetParticleMomentumDirection ( beampu );
-  //particleGun->SetParticleMomentum ( beamp );
-  particleGun->SetParticleTime ( 0.0 );
-  particleGun->SetParticlePosition( beamx );
-  particleGun->SetParticleEnergy( energy );
-  particleGun->GeneratePrimaryVertex( anEvent);
-}
-
-void PrimaryGeneratorAction::GenerateTest2(G4Event* anEvent, EvtGen *evtGenerator, G4ThreeVector D, G4ThreeVector P)
-{
-  //G4cout<<"Start Generate Test2"<<G4endl;
-  /// mother particle momentum //
-  double mass_km = 0.493677;
-  double mass_proton = 0.938272081;
-  G4LorentzVector lv_beam;
-  G4LorentzVector lv_target;
-  G4LorentzVector lv_particle;
-  double pbeam = P.mag();
-
-  lv_beam.setX(P.x());
-  lv_beam.setY(P.y());
-  lv_beam.setZ(P.z());
-  lv_beam.setE(sqrt(mass_km*mass_km + pbeam*pbeam)); 
-
-  lv_target.setX(0.0);
-  lv_target.setY(0.0);
-  lv_target.setZ(0.0);
-  lv_target.setE(sqrt(mass_proton*mass_proton)); 
-  
-  lv_particle = lv_beam + lv_target;
-
-  // make mother particle //
-  EvtParticle* lam1663(0);
-  static EvtId LAM1663 = EvtPDL::getId(std::string("Lambda(1663)0"));
-  G4LorentzVector LvLam1663;
-  G4ThreeVector TVp (lv_particle.x(), lv_particle.y(), lv_particle.z());
-  G4ThreeVector TVx (D.x(), D.y(), D.z());
-  //double mass_lam1663 = EvtPDL::getMass(LAM1663);
-  double mass_lam1663 = sqrt((lv_beam.e()+lv_target.e())*(lv_beam.e()+lv_target.e()) - pbeam*pbeam);
-
-  // check total energy //
-  if(mass_lam1663 < 1.115683 + 0.547862 )
-    {
-      G4cout<<"### Beam momentum is not enough to generate Lam1663 ###"<<G4endl;
-      return;
-    }
-  /* 
-  G4cout<<"########################### Test  ##############################"<<G4endl;
-  G4cout<<"Momentum of K-: "<<pbeam << " GeV/c" <<G4endl;
-  G4cout<<"Invariant mass of K + p: "<<lv_particle.m() << " GeV/c2" <<G4endl;
-  G4cout<<"Momentum of Lam1663: "<< TVp.mag() << " GeV/c"<<G4endl;
-  G4cout<<"Mass of Lam1663: "<< mass_lam1663 << " GeV/c2" <<G4endl;
-  G4cout<<"################################################################" << G4endl;
-  */
-  LvLam1663.setVect(TVp);
-  LvLam1663.setE(sqrt(mass_lam1663*mass_lam1663+TVp.mag2()));
-  //LvLam1663.setE(sqrt(1.664*1.664+TVp.mag2()));
-
-  EvtVector4R pInit_lam1663( LvLam1663.e(), LvLam1663.vect().x(), LvLam1663.vect().y(), LvLam1663.vect().z() );
-  lam1663 = EvtParticleFactory::particleFactory(LAM1663, pInit_lam1663);
-  GenerateDecay(anEvent, evtGenerator, lam1663, D);
-}
 
 void PrimaryGeneratorAction::GenerateDecay(G4Event* anEvent, EvtGen *evtGenerator, EvtParticle* particle, G4ThreeVector D)
 {
@@ -347,19 +291,225 @@ void PrimaryGeneratorAction::makeGun(G4Event* anEvent, int partnum, EvtVector4R 
   //G4double energy = beamp.mag()*GeV;
   double time = x4.get(0); 
   G4double g4time =  time * ns;
-  
-  //std::cout<<"Beam energy: "<< energy << std::endl;
-  //G4cout<<"###############  beam generated  #################" << G4endl;
-  //G4cout<<"particle: "<<partnum<< " vertex(x,y,z) ("<< beamx.x() << ", " << beamx.y() << ", " << beamx.z() << ") "
-  //	<< "energy: " <<energy/GeV<< " momentum(x,y,z) ("<< p4.get(1) << ", " << p4.get(2) << ", " <<p4.get(3) << ") "<< beamp.mag()<< " time: "<<time
-  //	<< G4endl;
-  //G4cout<<"##################################################" << G4endl;
+
+  //G4cout<<"[Test]pid: "<<partnum << " mass: "<<p4.mass() <<G4endl;
+  /*
+  std::cout<<"Beam energy: "<< energy << std::endl;
+  G4cout<<"###############  beam generated  #################" << G4endl;
+  G4cout<<"particle: "<<partnum<< " vertex(x,y,z) ("<< beamx.x() << ", " << beamx.y() << ", " << beamx.z() << ") "
+  	<< "energy: " <<energy/GeV<< " momentum(x,y,z) ("<< p4.get(1) << ", " << p4.get(2) << ", " <<p4.get(3) << ") "<< beamp.mag()<< " time: "<<time
+  	<< G4endl;
+  G4cout<<"##################################################" << G4endl;
+  */
   particleGun->SetParticleMomentumDirection ( beampu );
   //particleGun->SetParticleMomentum ( beamp );
   particleGun->SetParticleTime ( g4time );
   particleGun->SetParticlePosition( beamx );
   particleGun->SetParticleEnergy( energy );
+  //if(partnum == 321 || partnum == 2212 || partnum == -211 )particleGun->GeneratePrimaryVertex( anEvent);
+  //if(partnum == 321 )particleGun->GeneratePrimaryVertex( anEvent);
   particleGun->GeneratePrimaryVertex( anEvent);
+}
+
+
+//Gauss Position
+G4ThreeVector PrimaryGeneratorAction::GaussPosition( double sigx, double sigy, double hz )
+{
+  double x = 0. , y = 0., z = 0.0;//target center
+  x += G4RandGauss::shoot(0.0, sigx);; 
+  y += G4RandGauss::shoot(0.0, sigy);; 
+  z += (G4UniformRand() - 0.5) * hz;; 
+  
+  return G4ThreeVector (x, y, z);
 
 }
 
+//Gauss Momentum
+G4ThreeVector PrimaryGeneratorAction::GaussMomentum( double sigx, double sigy, double sigz )
+{
+  double x = 0. , y = 0., z = 0.0;//target center
+  x += G4RandGauss::shoot(0.0, sigx);; 
+  y += G4RandGauss::shoot(0.0, sigy);; 
+  z += G4RandGauss::shoot(0.0, sigz);; 
+  
+  return G4ThreeVector (x, y, z);
+}
+
+
+//Read Beam Profile
+void PrimaryGeneratorAction::ReadBeamProfile( G4ThreeVector & X, G4ThreeVector & P )
+{
+
+  ConfMan *conf = ConfMan::GetConfManager();
+  G4String beamfilename = conf->GetBeamProfileFile();
+  TFile *beam_file = new TFile(beamfilename, "R");
+  TTree *beam_tree = (TTree*)beam_file->Get("tr");
+
+  int ntK18;
+  double pointInx[1];
+  double pointIny[1];
+  double pointInz[1];
+  double pInx[1];
+  double pIny[1];
+  double pInz[1];
+
+
+  beam_tree->SetBranchAddress("ntK18",&ntK18);
+  beam_tree->SetBranchAddress("pointInx",  &pointInx);
+  beam_tree->SetBranchAddress("pointIny",  &pointIny);
+  beam_tree->SetBranchAddress("pointInz",  &pointInz);
+
+  beam_tree->SetBranchAddress("pInx",  &pInx);
+  beam_tree->SetBranchAddress("pIny",  &pIny);
+  beam_tree->SetBranchAddress("pInz",  &pInz);
+
+  bp_file_ndata = beam_tree->GetEntries();
+  if(bp_file_ndata == bp_nAccess) bp_nAccess = 0;
+  
+  beam_tree->GetEntry(bp_nAccess);
+ 
+  G4ThreeVector TVp(pInx[0], pIny[0], pInz[0]);
+  G4ThreeVector TVx(pointInx[0], pointIny[0], pointInz[0]);
+
+
+  X=TVx;
+  P=TVp;
+  bp_nAccess++;
+
+  //G4cout<<"[PrimaryGeneratorAction]nAccess: "<< bp_nAccess <<G4endl;
+  //G4cout<<"[PrimaryGeneratorAction]x and p: "<< TVx <<"   "<< TVp <<G4endl;
+
+  beam_file->Close();
+
+}
+
+//scattering 2body
+bool PrimaryGeneratorAction::Scattering2Body( double Mi1, double Mi2, double Mf1, double Mf2, const G4ThreeVector & Pini, G4ThreeVector & Pf1,  G4ThreeVector & Pf2, double cosx )
+{
+  //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;                                   
+  
+  double Mc=sqrt(Mi1*Mi1 + Mi2*Mi2 + 2.*Mi2*sqrt(Mi1*Mi1+Pini.mag2()) );
+  return Decay2Body( Mc, Mf1, Mf2, Pini, Pf1, Pf2, cosx );
+}
+
+bool PrimaryGeneratorAction::Decay2Body( double Mini, double Mf1, double Mf2, const G4ThreeVector & Pini, G4ThreeVector & Pf1,  G4ThreeVector & Pf2, double cosx )
+{
+  if(Mini<Mf1+Mf2)
+    {
+      std::cerr << "Mini < Mf1+Mf2 Mini=" << Mini/GeV << "GeV/c2 "
+		<< "Mf1=" <<  Mf1/GeV << "GeV/c2 "
+		<< "Mf2=" <<  Mf2/GeV << "GeV/c2 " << std::endl;
+      return false;
+    }
+  
+  G4ThreeVector beta( Pini/sqrt(Mini*Mini+Pini.mag2()) );
+  
+  double Ecmf1=(Mini*Mini-Mf2*Mf2+Mf1*Mf1)/Mini*0.5;
+  double Ecmf2=(Mini*Mini-Mf1*Mf1+Mf2*Mf2)/Mini*0.5;
+  double Pcm=sqrt((Mini*Mini-(Mf1+Mf2)*(Mf1+Mf2))*
+                  (Mini*Mini-(Mf1-Mf2)*(Mf1-Mf2)))/Mini*0.5;
+  
+  //G4ThreeVector UnitDir=generator.GenerateDirection();
+  
+  double cost=cosx;
+  double sint=sqrt(1.-cost*cost);
+  double phi=G4UniformRand()*acos(-1.)*2.;
+  double cosp=cos(phi), sinp=sin(phi);
+
+  G4ThreeVector UnitDir( sint*cosp, sint*sinp, cost );
+
+  G4ThreeVector Pcmf1 =  Pcm*UnitDir;
+  G4ThreeVector Pcmf2 = -Pcm*UnitDir;
+  
+  G4LorentzVector LVf1( Pcmf1, Ecmf1), LVf2( Pcmf2, Ecmf2 );
+  LVf1.boost(beta); Pf1=LVf1.vect();
+  LVf2.boost(beta); Pf2=LVf2.vect();
+  
+  //  std::cout << "CosTCM=" << cost << " PhiCM=" << phi/degree                                   
+  //        << " degree" << std::endl;                                                            
+  //  std::cout << "PCM=" << Pcm/GeV << " " << Pcmf1/GeV << " -->"                                
+  //                << Pf1/GeV << " " << Pf1.mag()/GeV << std::endl;                              
+  
+  return true;
+}
+
+//Legendre function
+G4double PrimaryGeneratorAction::Legendre(G4int order, G4double x)
+{
+  G4double output=0;
+  switch( order  )
+    {
+    case 0:
+      output=1.;
+      break;
+    case 1:
+      output= x;
+      break;
+    case 2:
+      output= 1./2.*( 3.*x*x - 1. );
+      break;
+    case 3:
+      output= 1./2.*( 5.*x*x*x - 3.*x );
+      break;
+    case 4:
+      output= 1./8.*( 35.*pow(x,4) - 30.*pow(x,2) + 3. );
+      break;
+    case 5:
+      output= 1./8.*( 63.*pow(x,5) - 70.*pow(x,3) + 15.*x );
+      break;
+    case 6:
+      output= 1./16.*( 231.*pow(x,6) - 315.*pow(x,4) + 105.*pow(x,2) - 5. );
+      break;
+    case 7:
+      output= 1./16.*( 429.*pow(x,7) - 693.*pow(x,5) + 315.*pow(x,3) - 35.*x );
+      break;
+    case 8:
+      output= 1./128.*( 6435.*pow(x,8) - 12012.*pow(x,6) + 6930.*pow(x,4) - 1260.*pow(x,2) + 35. );
+      break;
+    case 9:
+      output= 1./128.*( 12155.*pow(x,9) - 25740.*pow(x,7) + 18018.*pow(x,5) - 4620.*pow(x,3) + 315.*x );
+      break;
+    case 10:
+      output= 1./256.*( 46189.*pow(x,10) - 109395.*pow(x,8) + 90090.*pow(x,6) - 30030.*pow(x,4) + 3465.*pow(x,2) - 63. );
+      break;
+
+    default:
+      G4cout<<"error Legendre order:"<<order<<G4endl;
+    }
+  
+  return output;
+}
+
+G4ThreeVector PrimaryGeneratorAction::BeamMomRotate(G4ThreeVector beam, G4double x)
+{
+  G4ThreeVector beama;
+  G4ThreeVector yunit(0., 1., 0.); //y direction rotation, y direction B field
+  beam.rotate(x, yunit);
+
+  beama = beam;
+  
+  return beama;
+}
+ 
+G4ThreeVector PrimaryGeneratorAction::GaussMomentum( double umean, double usig, double vmean, double vsig)
+{
+  double u_mean = tan(umean);
+  double v_mean = tan(vmean);
+  double u_sig = tan(usig);
+  double v_sig = tan(vsig);
+  double u = G4RandGauss::shoot(u_mean, u_sig) ;;
+  double v = G4RandGauss::shoot(v_mean, v_sig) ;;
+  
+  double pmag = sqrt(u*u + v*v + 1.0);
+  G4ThreeVector pdir (u/pmag, v/pmag, 1.0/pmag);
+  
+  //std::cout<<"U: "<<u<<" V: "<<v<<std::endl;
+  return pdir;
+  
+}
+
+double PrimaryGeneratorAction::GaussZ( double hz)
+{
+  double z = (G4UniformRand() - 0.5) * hz;; 
+  return z;
+}

@@ -1,0 +1,38 @@
+/*
+  EventAction.hh
+
+  2017/8  Yang
+*/
+
+#ifndef EventAction_h 
+#define EventAction_h 1
+
+#include "globals.hh"
+#include "G4UserEventAction.hh"
+
+class AnalysisManager;
+
+class EventAction : public G4UserEventAction
+{
+public:
+  EventAction( AnalysisManager *analysisManager=0, G4bool fAlwaysDraw=false );
+  ~EventAction();
+
+private:
+  EventAction( const EventAction & );
+  EventAction & operator = ( const EventAction & );
+
+public:
+  void BeginOfEventAction( const G4Event *anEvent );
+  void EndOfEventAction( const G4Event *anEvent );
+
+  G4bool SetDrawFlag( G4bool NewVal ) 
+  { G4bool OldVal=fAlwaysDraw_; fAlwaysDraw_=NewVal; return OldVal; }
+
+protected:
+  AnalysisManager *anaMan;
+  G4bool fAlwaysDraw_;
+
+};
+
+#endif

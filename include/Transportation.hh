@@ -6,6 +6,8 @@
 #define Transportation_h 1
 
 #include "G4Transportation.hh"
+//geant4 10.07 p03
+//#include "G4ITTransportation.hh"
 
 class Transportation : public G4Transportation
 {

@@ -68,6 +68,13 @@ G4bool TargetSD::ProcessHits( G4Step *aStep, G4TouchableHistory *ROhist )
   
   G4int nHits = TargetCollection->entries();
   G4ThreeVector hitpos = aStep->GetPreStepPoint()->GetPosition();
+  G4ThreeVector hitpos2 = aStep->GetPostStepPoint()->GetPosition();
+
+  G4ThreeVector HitDiff = hitpos-hitpos2;
+
+
+  G4double hitdiff = HitDiff.mag();
+
   G4double hittime = aTrack->GetGlobalTime();
   G4int trackNo = aTrack->GetTrackID();
   G4ThreeVector hitmom = aTrack->GetMomentum();
@@ -79,7 +86,7 @@ G4bool TargetSD::ProcessHits( G4Step *aStep, G4TouchableHistory *ROhist )
   G4ThreeVector hitposl = theTouchable->GetHistory()->GetTopTransform().TransformPoint( hitpos );
   G4ThreeVector hitmoml = theTouchable->GetHistory()->GetTopTransform().TransformAxis( hitmom );
 
-  //G4cout<<"[TargetSD]PartID: "<< PartID << " MID: "<<MID<<G4endl;
+  //G4cout<<"[TargetSD]PartID: "<< PartID << " MID: "<<MID <<" THi  Nam: " << hitName <<" prepoint: "<<hitpos<<" postpoint: "<<aStep->GetPostStepPoint()->GetPosition()<<G4endl;
   for( G4int i=0; i<nHits; ++i )
     {
       TargetHit *aHit = (*TargetCollection)[i];
@@ -89,6 +96,7 @@ G4bool TargetSD::ProcessHits( G4Step *aStep, G4TouchableHistory *ROhist )
           if( fabs(hittime-time)<=TimeSeparationThreshold )
             {
               aHit->AddEdep( edep );
+	      aHit->AddHitDiff(hitdiff);
               if( hittime<time )
                 {
                   aHit->SetTime( hittime );
@@ -98,6 +106,7 @@ G4bool TargetSD::ProcessHits( G4Step *aStep, G4TouchableHistory *ROhist )
                   aHit->SetLMom( hitmoml );
                   aHit->SetLocalPos( hitposl.x(), hitposl.z() );
                   aHit->SetPathLength( path );
+
                   //aHit->SetHitParticleName( PartName );                                                                                                           
                 }
               return true;
@@ -117,6 +126,7 @@ G4bool TargetSD::ProcessHits( G4Step *aStep, G4TouchableHistory *ROhist )
   aHit->SetLMom( hitmoml );
   aHit->SetTrackNo( trackNo );
   aHit->SetPathLength( path );
+  aHit->SetHitDiff(hitdiff);
   aHit->SetLocalPos( hitposl.x(), hitposl.y() );
   aHit->SetHitParticleID( PartID );
   TargetCollection->insert( aHit );

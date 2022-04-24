@@ -15,9 +15,15 @@ AlongStepGetPhysicalInteractionLength( const G4Track &track,
                                        G4GPILSelection *selection )
 {
   
-  if( DoesGlobalFieldExist() &&
+  //if( DoesGlobalFieldExist() &&
+  //    currentMinimumStep>MinimumStep ) 
+  //  currentMinimumStep=MinimumStep;
+
+  //geant4 10.07-p03
+  if( DoesAnyFieldExist() &&
       currentMinimumStep>MinimumStep ) 
     currentMinimumStep=MinimumStep;
+
   
   return G4Transportation::
     AlongStepGetPhysicalInteractionLength( track, previousStepSize, 

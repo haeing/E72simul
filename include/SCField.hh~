@@ -1,0 +1,43 @@
+/*
+  SksField.hh
+*/
+
+#ifndef SksField_h 
+#define SksField_h 1
+
+#include "SksFieldMap.hh"
+#include "G4MagneticField.hh"
+
+#include <vector>
+
+class SimpleFieldElement;
+
+class SksField : public G4MagneticField
+{
+public:
+  SksField();
+  explicit SksField( const std::string &FieldMapName, 
+		     double scaleFactor=1.0 );
+  ~SksField();
+
+private:
+  SksField( const SksField & );
+  SksField & operator = ( const SksField & );
+
+public:
+  void GetFieldValue( const double Point[4], double *Bfield ) const;
+  void cleanupSimpleElementList( void );
+  void AddSimpleElement( SimpleFieldElement *elem );
+
+private:
+  SksFieldMap fMap;
+
+  typedef std::vector <SimpleFieldElement *> FMContainer;
+  typedef std::vector <SimpleFieldElement *>
+  ::const_iterator FMIterator;
+
+  FMContainer elemList_;
+};
+
+#endif
+

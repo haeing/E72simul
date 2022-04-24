@@ -5,8 +5,14 @@
 #include "TpcHit.hh"
 #include "TofHit.hh"
 #include "TargetHit.hh"
+#include "TargetHit.hh"
 //#include "TrackerHit.hh"
 #include "Randomize.hh"
+#include "FACHit.hh"
+#include "BDCHit.hh"
+#include "DCHit.hh"
+#include "CH1Hit.hh"
+#include "FTOFHit.hh"
 
 #include "TFile.h"
 #include "TH1.h"
@@ -131,10 +137,65 @@ void AnalysisManager::BeginOfRun(const G4Run*)
   tree->Branch("targetmomz", targetmomz, "targetmomz[nhTarget]/D");
   tree->Branch("targettrid", targettrid, "targettrid[nhTarget]/I");
   tree->Branch("targetpath", targetpath, "targetpath[nhTarget]/D");
+  tree->Branch("targethitdiff", targethitdiff, "targethitdiff[nhTarget]/D");
   tree->Branch("targetpid", targetpid, "targetpid[nhTarget]/I");
-  
-  event = 0;
 
+  // elastic test //
+  tree->Branch("elcosth", &elcosth, "elcosth/D");
+
+
+  //KURAMA Part//
+
+  // DC //
+  tree->Branch("nhDc", &nhDc, "nhDc/I");
+  tree->Branch("dcid", dcid, "dcid[nhDc]/I");
+  tree->Branch("dclayer", dclayer, "dclayer[nhDc]/I");
+  tree->Branch("dcedep", dcedep, "dcedep[nhDc]/D");
+  tree->Branch("dctime", dctime, "dctime[nhDc]/D");
+  tree->Branch("dcposx", dcposx, "dcposx[nhDc]/D");
+  tree->Branch("dcposy", dcposy, "dcposy[nhDc]/D");
+  tree->Branch("dcposz", dcposz, "dcposz[nhDc]/D");
+  tree->Branch("dcmomx", dcmomx, "dcmomx[nhDc]/D");
+  tree->Branch("dcmomy", dcmomy, "dcmomy[nhDc]/D");
+  tree->Branch("dcmomz", dcmomz, "dcmomz[nhDc]/D");
+  tree->Branch("dctrid", dctrid, "dctrid[nhDc]/I");
+  tree->Branch("dcpath", dcpath, "dcpath[nhDc]/D");
+  tree->Branch("dcpid", dcpid, "dcpid[nhDc]/I");
+
+  //FAC//                                                                                  
+  tree->Branch("nhFac", &nhFac, "nhFac/I");
+  tree->Branch("facseg", facseg, "facseg[nhFac]/I");
+  tree->Branch("facedep", facedep, "facedep[nhFac]/D");
+  tree->Branch("factime", factime, "factime[nhFac]/D");
+  tree->Branch("facposx", facposx, "facposx[nhFac]/D");
+  tree->Branch("facposy", facposy, "facposy[nhFac]/D");
+  tree->Branch("facposz", facposz, "facposz[nhFac]/D");
+  tree->Branch("facmomx", facmomx, "facmomx[nhFac]/D");
+  tree->Branch("facmomy", facmomy, "facmomy[nhFac]/D");
+  tree->Branch("facmomz", facmomz, "facmomz[nhFac]/D");
+  tree->Branch("factrid", factrid, "factrid[nhFac]/I");
+  tree->Branch("facpath", facpath, "facpath[nhFac]/D");
+  tree->Branch("facpid", facpid, "facpid[nhFac]/I");
+
+  //BDC//                                                                      
+  tree->Branch("nhBdc", &nhBdc, "nhBdc/I");
+  tree->Branch("bdcseg", bdcseg, "bdcseg[nhBdc]/I");
+  tree->Branch("bdcedep", bdcedep, "bdcedep[nhBdc]/D");
+  tree->Branch("bdctime", bdctime, "bdctime[nhBdc]/D");
+  tree->Branch("bdcposx", bdcposx, "bdcposx[nhBdc]/D");
+  tree->Branch("bdcposy", bdcposy, "bdcposy[nhBdc]/D");
+  tree->Branch("bdcposz", bdcposz, "bdcposz[nhBdc]/D");
+  tree->Branch("bdcmomx", bdcmomx, "bdcmomx[nhBdc]/D");
+  tree->Branch("bdcmomy", bdcmomy, "bdcmomy[nhBdc]/D");
+  tree->Branch("bdcmomz", bdcmomz, "bdcmomz[nhBdc]/D");
+  tree->Branch("bdctrid", bdctrid, "bdctrid[nhBdc]/I");
+  tree->Branch("bdcpath", bdcpath, "bdcpath[nhBdc]/D");
+  tree->Branch("bdcpid", bdcpid, "bdcpid[nhBdc]/I");
+
+
+
+  event = 0;
+  nEvt = 0;
 
 }
 
@@ -148,7 +209,7 @@ void AnalysisManager::EndOfRun(const G4Run*)
 
 void AnalysisManager::BeginOfEvent(const G4Event*)
 {
-  nEvt = 0;
+  //nEvt = 0;
   //G4cout<<"[AnalysisManager] Begin of Event: "<<nEvt<<G4endl;
 }
 
@@ -159,10 +220,14 @@ void AnalysisManager::EndOfEvent(const G4Event* anEvent)
   if(!HCTE) return;
   G4SDManager *SDMan = G4SDManager::GetSDMpointer();
 
-  G4int nhtpcpad=0, nhtof=0, nhtarget=0;
+  G4int nhtpcpad=0, nhtof=0, nhtarget=0, nhfac=0, nhbdc=0, nhdc=0, nhch1 = 0, nhftof=0 ;
   TpcHitsCollection *TpcHC=0;
   TofHitsCollection *TofHC=0;
   TargetHitsCollection *TargetHC=0;
+  DCHitsCollection *DCHC = 0;
+  FACHitsCollection *FACHC = 0;
+  BDCHitsCollection *BDCHC = 0;
+
 
   G4int colIdTpc = SDMan->GetCollectionID( "TpcCollection" );
   if(colIdTpc>=0)
@@ -194,6 +259,36 @@ void AnalysisManager::EndOfEvent(const G4Event* anEvent)
 	}
     }
 
+  G4int colIdDC = SDMan->GetCollectionID( "DcCollection" );
+  if(colIdDC>=0)
+    {
+      DCHC=dynamic_cast<DCHitsCollection *>( HCTE->GetHC( colIdDC ) );
+      if(DCHC)
+	{
+	  nhdc=DCHC->entries();
+	}
+    }
+
+  G4int colIdFAC = SDMan->GetCollectionID( "FacCollection" );                            
+  if(colIdFAC>=0)
+    {
+      FACHC=dynamic_cast<FACHitsCollection *>( HCTE->GetHC( colIdFAC ) );
+      if(FACHC)
+        {
+          nhfac=FACHC->entries();
+        }
+    }
+
+  G4int colIdBDC = SDMan->GetCollectionID( "BdcCollection" );                            
+  if(colIdBDC>=0)
+    {
+      BDCHC=dynamic_cast<BDCHitsCollection *>( HCTE->GetHC( colIdBDC ) );
+      if(BDCHC)
+        {
+          nhbdc=BDCHC->entries();
+        }
+    }
+
 
 
   if(nhtpcpad > 200 -1)
@@ -211,6 +306,25 @@ void AnalysisManager::EndOfEvent(const G4Event* anEvent)
       G4cout<<"[AnalysisManager] Number of Target Hit > 100"<<G4endl;
       return;
     }
+
+  if(nhdc > 200 -1)
+    {
+      G4cout<<"[AnalysisManager] Number of DC Hit > 200"<<G4endl;
+      return;
+    }
+
+  if(nhfac > 100 -1)
+    {
+      G4cout<<"[AnalysisManager] Number of FAC Hit > 100"<<G4endl;
+      return;
+    }
+
+  if(nhbdc > 100 -1)
+    {
+      G4cout<<"[AnalysisManager] Number of BDC Hit > 100"<<G4endl;
+      return;
+    }
+
 
   for( int i=0; i<nhtpcpad; ++i )
     {
@@ -269,18 +383,123 @@ void AnalysisManager::EndOfEvent(const G4Event* anEvent)
       targetmomz[i] = aHit->GetMom().z()*0.001;
       targettrid[i] = aHit->GetTrackNo();
       targetpath[i] = aHit->GetPathLength();
+      targethitdiff[i] = aHit->GetHitDiff();
       targetpid[i] = aHit->GetHitParticleID();
     }
   nhTarget = nhtarget;
 
+  for( int i=0; i<nhfac; ++i )
+    {
+      FACHit *aHit=(*FACHC)[i];
+      facseg[i] = aHit->GetDetectorID();
+      facedep[i] = aHit->GetEdep();
+      factime[i] = aHit->GetTOF();
+      facposx[i] = aHit->GetPosition().x();
+      facposy[i] = aHit->GetPosition().y();
+      facposz[i] = aHit->GetPosition().z();
+      facmomx[i] = aHit->GetMomentum().x()*0.001;
+      facmomy[i] = aHit->GetMomentum().y()*0.001;
+      facmomz[i] = aHit->GetMomentum().z()*0.001;
+      factrid[i] = aHit->GetTrackID();
+      facpath[i] = aHit->GetLength();
+      facpid[i] = aHit->GetParticleID();
+    }
+  nhFac = nhfac;
+
+  for( int i=0; i<nhbdc; ++i )
+    {
+      BDCHit *aHit=(*BDCHC)[i];
+      bdcseg[i] = aHit->GetDetectorID();
+      bdcedep[i] = aHit->GetEdep();
+      bdctime[i] = aHit->GetTOF();
+      bdcposx[i] = aHit->GetPosition().x();
+      bdcposy[i] = aHit->GetPosition().y();
+      bdcposz[i] = aHit->GetPosition().z();
+      bdcmomx[i] = aHit->GetMomentum().x()*0.001;
+      bdcmomy[i] = aHit->GetMomentum().y()*0.001;
+      bdcmomz[i] = aHit->GetMomentum().z()*0.001;
+      bdctrid[i] = aHit->GetTrackID();
+      bdcpath[i] = aHit->GetLength();
+      bdcpid[i] = aHit->GetParticleID();
+    }
+  nhBdc = nhbdc;
+
+
+  // KURAMA part // 
+  for( int i=0; i<nhdc; ++i )
+    {
+      DCHit *aHit=(*DCHC)[i];
+
+      dclayer[i] = aHit->GetDetectorID();
+      if(dclayer[i] < 9)
+	{
+	  dcid[i] = 0;
+	}
+      else if(dclayer[i] > 9 && dclayer[i] < 19)
+	{
+	  dcid[i] = 1;
+	}
+      else if(dclayer[i] > 19 && dclayer[i] < 29)
+	{
+	  dcid[i] = 2;
+	}
+
+      else if(dclayer[i] == 100)
+	{
+	  dcid[i] = 100;
+	}
+      else if(dclayer[i] == 101)
+	{
+	  dcid[i] = 101;
+	}
+      else if(dclayer[i] == 102)
+	{
+	  dcid[i] = 102;
+	}
+      else if(dclayer[i] == 103)
+	{
+	  dcid[i] = 103;
+	}
+      else if(dclayer[i] == 104)
+	{
+	  dcid[i] = 104;
+	}
+      else if(dclayer[i] == 105)
+	{
+	  dcid[i] = 105;
+	}
+      else 
+	{
+	  G4cout<< "[AnalysisManager] DC layer is wrong"<<G4endl;
+	}
+      
+      dcedep[i] = aHit->GetEdep();
+      dctime[i] = aHit->GetTOF();
+      dcposx[i] = aHit->GetPosition().x();
+      dcposy[i] = aHit->GetPosition().y();
+      dcposz[i] = aHit->GetPosition().z();
+      dcmomx[i] = aHit->GetMomentum().x()*0.001;
+      dcmomy[i] = aHit->GetMomentum().y()*0.001;
+      dcmomz[i] = aHit->GetMomentum().z()*0.001;
+      dctrid[i] = aHit->GetTrackID();
+      dcpath[i] = aHit->GetLength();
+      dcpid[i] = aHit->GetParticleID();
+    }
+  nhDc = nhdc;
+
   tree->Fill();
   event++;
-  //G4cout<<"[AnalysisManager]Event: "<<event<<" nEvt: "<<nEvt << " nhTarget: " << nhTarget<<G4endl;
+
   nEvt = 0;
   nhTpcPad = 0;
   nhTof = 0;
   nhTarget = 0;
   nBeam = 0;
+  nhFac = 0;
+  nhBdc = 0;
+
+  // KURAMA part //
+  nhDc = 0;
 }
 
 void AnalysisManager::SetEvtGen(int j, int partnum, 
@@ -293,7 +512,9 @@ void AnalysisManager::SetEvtGen(int j, int partnum,
 				EvtVector4R p
 				)
 {
+  //G4cout<<"begin nEvt: "<<nEvt<<" j: "<<j<<G4endl;
   if(nEvt < j) nEvt =j;
+  //G4cout<<"nEvt: "<<nEvt<<G4endl;
   evtid[j-1]=j;
   evtpid[j-1] = partnum;
   evttrid[j-1] = tr_id;
@@ -325,4 +546,9 @@ void AnalysisManager::SetBeam(int j,
   bvy[j-1] = D.y();
   bvz[j-1] = D.z();
 
+}
+
+void AnalysisManager::SetCosTheta( double costheta )
+{
+  elcosth = costheta;
 }
