@@ -1382,8 +1382,8 @@ void DetectorConstruction::MakeTargetHver2(G4VPhysicalVolume *pMother, G4ThreeVe
   /// Physics World ///
   // param //
   const G4double RIN_PW = 0.0*mm;
-  const G4double ROUT_PW= 68.0/2.0*mm;
-  const G4double DZ_PW  = 418.0/2.0*mm; // target tpc center (y-axis), up 350 mm, down 68 mm. 
+  const G4double ROUT_PW= 100.0/2.0*mm;
+  const G4double DZ_PW  = 500.0/2.0*mm; // target tpc center (y-axis), up 350 mm, down 68 mm. 
   const G4double DZ_PW_DOWN = (118-50.0)*mm;
   const G4double STANG_PW = 0.*deg;
   const G4double EDANG_PW = 360.*deg;
@@ -1417,7 +1417,7 @@ void DetectorConstruction::MakeTargetHver2(G4VPhysicalVolume *pMother, G4ThreeVe
   /// Target ///
   // param //
   const G4double RIN_Target = 0.0*mm;
-  const G4double ROUT_Target= 54.0/2.0*mm; // target radius 53 mm
+  const G4double ROUT_Target= 80.0/2.0*mm; // target radius 53 mm
   const G4double DZ_Target  = 100.0/2.0*mm; // target length 100 mm   
   const G4double STANG_Target = 0.*deg;
   const G4double EDANG_Target = 360.*deg;
@@ -1450,9 +1450,9 @@ void DetectorConstruction::MakeTargetHver2(G4VPhysicalVolume *pMother, G4ThreeVe
   /// Target holder Sidewall1///
 
   // param //
-  const G4double RIN_TargetHolder_SideWall1 = (68.0/2.0-1.0)*mm;
-  const G4double ROUT_TargetHolder_SideWall1= 68.0/2.0*mm;
-  const G4double DZ_TargetHolder_SideWall1 = 418.0/2.0*mm;
+  const G4double RIN_TargetHolder_SideWall1 = 94.0/2.0*mm;
+  const G4double ROUT_TargetHolder_SideWall1= 100.0/2.0*mm;
+  const G4double DZ_TargetHolder_SideWall1 = 500.0/2.0*mm;
   const G4double STANG_TargetHolder_SideWall1 = 0.*deg;
   const G4double EDANG_TargetHolder_SideWall1 = 360.*deg;
   //const G4double EDANG_TargetHolder_SideWall1_Window = 26.0*deg;
@@ -1675,8 +1675,8 @@ void DetectorConstruction::MakeTargetHver2(G4VPhysicalVolume *pMother, G4ThreeVe
 
   /// Target holder SideWall3///
   // param //
-  const G4double RIN_TargetHolder_SideWall3= (18.0/2.0-2.0)*mm;
-  const G4double ROUT_TargetHolder_SideWall3 = 18.0/2.0*mm;
+  const G4double RIN_TargetHolder_SideWall3= 6.0/2.0*mm;
+  const G4double ROUT_TargetHolder_SideWall3 = 9.0/2.0*mm;
   const G4double DZ_TargetHolder_SideWall3 = (DZ_PW*2.0-DZ_PW_DOWN-DZ_Target*2.0)/2.0*mm;
   const G4double STANG_TargetHolder_SideWall3 = 0.*deg;
   const G4double EDANG_TargetHolder_SideWall3 = 360.*deg;
